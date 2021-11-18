@@ -1,52 +1,43 @@
-from tkinter import *
-import tkinter
 from requests import get
 import json
+from ip2geotools.databases.noncommercial import DbIpCity
+from geopy.geocoders import Nominatim
+import time
 
+app = Nominatim(user_agent="tutorial")
 ip = get('https://ip4.seeip.org').text
 geo= get('https://ip.seeip.org/geoip').text
+x = json.loads(geo)
+response = DbIpCity.get(ip, api_key='free')
 
-sample =Tk()
-sample.title("IP Getter")
-sample.geometry("900x300")
+ipv6 = get('https://ip.seeip.org').text
 
-json_str = json.dumps(geo)
+def get_address_by_location(latitude, longitude, language="en"):
+    """This function returns an address as raw from a location
+    will repeat until success"""
+    coordinates = f"{latitude}, {longitude}"
+    time.sleep(1)
+    try:
+        return app.reverse(coordinates, language=language).raw
+    except:
+        return get_address_by_location(latitude, longitude)
 
-resp=json.loads(json_str)
+address = get_address_by_location(response.latitude, response.longitude, language="en")
+lat = str(response.latitude)
+lng = str(response.longitude)
 
-def setIP(text):
-    textExample.delete(0,"end")
-    textExample.insert(0,text)
+print("Location of IP :" + address)
 
-def setGeo(text):
-    
-    inputtxt.insert(END,text)
-
-# textExample2 = tkinter.Entry(sample)
-# textExample2.pack()
-
-textExample = tkinter.Entry(sample,justify="center")
-textExample.pack(padx=300,pady=10)
-
-inputtxt = Text(sample, height = 30,
-                width = 50,
-                bg = "light yellow")                
-inputtxt.pack(padx=300, pady=40)
+# print(address['display_name'])
 
 
+print("IPv4 IP address : " + ip)
 
-IPbutton = tkinter.Button(sample, text="Get IP", width=10, command = lambda:setIP(ip))
-IPbutton.place(x=405, y=35)
+print("IPv6 IP address : " + ipv6)
 
-Geobutton = tkinter.Button(sample, text="Get Geo Location", width=15, command = lambda:setGeo(resp))
-Geobutton.place(x=385,y=265)
+for key in x:
+    print(key, " : " , x[key])
 
-
-sample.mainloop()
-
-
-
-# print (resp,)
 
 
 
